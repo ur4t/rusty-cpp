@@ -36,6 +36,7 @@ numeric_types_legacy.hpp (deprecated): namespace numeric_types_legacy (
 - Use `const` when declaring variable as long as there is no need to modify it.
 - Use smart pointers instead of raw pointers.
 - Use `enum class` instead of c enum constant.
+- Use trailing return type if possible (not always a good idea).
 
 ## TODO
 - comments for hover doc
