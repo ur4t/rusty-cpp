@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright(c) 2021 ur4t
 
-#ifndef __NUMERIC_TYPES_HPP__
-#define __NUMERIC_TYPES_HPP__
+#ifndef __RUSTY_NUMERIC_TYPES_HPP__
+#define __RUSTY_NUMERIC_TYPES_HPP__
 
 #include <array>
 #include <cstring>
@@ -192,4 +192,4 @@ template <typename T> struct std::hash<::rusty::numeric_types::Number<T>> {
     }
 };
 
-#endif // __NUMERIC_TYPES_HPP__
+#endif // __RUSTY_NUMERIC_TYPES_HPP__

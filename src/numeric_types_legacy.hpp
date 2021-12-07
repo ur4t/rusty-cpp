@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright(c) 2021 ur4t
 
-#ifndef __NUMERIC_TYPES_LEFACY_HPP__
-#define __NUMERIC_TYPES_LEFACY_HPP__
+#ifndef __RUSTY_NUMERIC_TYPES_LEGACY_HPP__
+#define __RUSTY_NUMERIC_TYPES_LEGACY_HPP__
 
 #include <cstdint>
 #include <limits>
@@ -57,4 +57,4 @@ FLOATING_IMPL(64, double)
 
 } // namespace rusty::numeric_types_legacy
 
-#endif // __NUMERIC_TYPES_LEFACY_HPP__
+#endif // __RUSTY_NUMERIC_TYPES_LEGACY_HPP__

@@ -4,9 +4,9 @@
 #ifndef __RUSTY_HPP__
 #define __RUSTY_HPP__
 
-#include "numeric_types.hpp"
 #include "collections.hpp"
 #include "macros.hpp"
+#include "numeric_types.hpp"
 
 #ifndef RUSTY_NO_DEFAULT_USING
 
