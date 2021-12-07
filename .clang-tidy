@@ -1,0 +1,49 @@
+# https://rust-lang.github.io/api-guidelines/naming.html
+# https://clang.llvm.org/extra/clang-tidy/checks/readability-identifier-naming.html
+#
+# | Rust           | C++                                            | Style      |
+# | Module         | Namespace                                      | lower_case |
+# | Type           | Class, Enum, Struct, TypeAlias, Typedef, Union | CamelCase  |
+# | Trait          | (Not sure, not applied)                        | CamelCase  |
+# | Enum Variant   | EnumConstant                                   | CamelCase  |
+# | Function       | Function                                       | lower_case |
+# | Method         | Method                                         | lower_case |
+# | Macro          | Macro (Not sure, not applied)                  | lower_case |
+# | Local variable | Variable, Parameter                            | lower_case |
+# | Static         | GlobalVariable                                 | UPPER_CASE |
+# | Constant       | Constant                                       | UPPER_CASE |
+# | Type parameter | TypeTemplateParameter                          | lower_case |
+
+CheckOptions:
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypedefCase
+    value: CamelCase
+  - key: readability-identifier-naming.UnionCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumConstantCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.MethodCase
+    value: lower_case
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.ConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.TypeTemplateParameterCase
+    value: CamelCase
