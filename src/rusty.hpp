@@ -8,13 +8,12 @@
 #include "macros.hpp"
 #include "numeric_types.hpp"
 
-#ifndef RUSTY_NO_DEFAULT_USING
+#ifdef RUSTY_USE_DEFAULT_USING
 
 using namespace ::rusty::numeric_types;
 using namespace ::rusty::numeric_types::literal;
+using namespace ::rusty::collections;
 using namespace ::rusty::collections::ostream;
-using ::rusty::collections::Array;
-using ::rusty::collections::Vec;
 
 #endif
 

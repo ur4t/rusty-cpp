@@ -261,13 +261,12 @@ template <typename T> struct std::hash<::rusty::numeric_types::Number<T>> {
     }
 };
 
-#ifndef RUSTY_NO_DEFAULT_USING
+#ifdef RUSTY_USE_DEFAULT_USING
 
 using namespace ::rusty::numeric_types;
 using namespace ::rusty::numeric_types::literal;
+using namespace ::rusty::collections;
 using namespace ::rusty::collections::ostream;
-using ::rusty::collections::Array;
-using ::rusty::collections::Vec;
 
 #endif
 
