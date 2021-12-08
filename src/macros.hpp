@@ -7,9 +7,11 @@
 #define dbg(x, ...)                                                            \
     [&] {                                                                      \
         auto flag = ::std::cerr.flags();                                       \
+        auto precision = ::std::cerr.precision();                              \
         ::std::cerr << "[" __FILE__ ":" << __LINE__                            \
                     << "] " #x " = " __VA_ARGS__ << (x) << ::std::endl;        \
         ::std::cerr.flags(flag);                                               \
+        ::std::cerr.precision(precision);                                      \
         return x;                                                              \
     }()
 
