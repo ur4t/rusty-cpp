@@ -36,37 +36,40 @@ bit_cast(const From &source) noexcept {
 }
 
 template <typename T> struct Number {
-
     template <::std::size_t N>
     using ByteArray = ::std::array<Number<::std::uint8_t>, N>;
     using Self = Number<T>;
-
     T value;
 
-    constexpr Number<T>() = default;
-    constexpr Number<T>(const Self &permitive) = default;
-
+    // Implicit conversion from raw numeric literals
+    // is not recommended, though allowed for convenience.
     // NOLINTNEXTLINE(google-explicit-constructor)
     constexpr Number<T>(const T &value) : value(value){};
-
-    // byte convert begin =====================================================
+    constexpr Number<T>() = default;
+    constexpr Number<T>(const Self &) = default;
+    // Disable implicit conversion between Number<> for safety.
+    template <typename T2>
+    constexpr explicit Number<T>(const Number<T2> &number)
+        : value(static_cast<T>(number.value)){};
 
     // compile time endian detection from
     // https://en.cppreference.com/w/cpp/types/endian
 #ifdef _WIN32
-    static constexpr bool IS_LE = true;
-    static constexpr bool IS_BE = false;
+    static constexpr bool is_le = true;  // NOLINT
+    static constexpr bool is_be = false; // NOLINT
 #else
-    static constexpr bool IS_LE = __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
-    static constexpr bool IS_BE = __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__;
+    static constexpr bool is_le = // NOLINT
+        __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__;
+    static constexpr bool is_be = // NOLINT
+        __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__;
 #endif
-    static_assert(IS_LE || IS_BE, "Neither little-endian or big-endian!");
+    static_assert(is_le || is_be, "Neither little-endian or big-endian!");
 
     static constexpr Self from_ne_bytes(const ByteArray<sizeof(T)> &bytes) {
         return Self{bit_cast<T>(bytes)};
     }
 
-    constexpr ByteArray<sizeof(T)> to_ne_bytes() const {
+    constexpr ByteArray<sizeof(T)> to_ne_bytes() const & {
         return bit_cast<ByteArray<sizeof(T)>>(value);
     }
 
@@ -78,77 +81,105 @@ template <typename T> struct Number {
         return reversed_bytes;
     }
 
-    constexpr Self reverse_bytes() const {
+    constexpr Self reverse_bytes() const & {
         return Self::from_ne_bytes(reverse_bytes(this->to_ne_bytes()));
     }
 
-    static constexpr Self from_le_bytes(const ByteArray<sizeof(T)> &bytes) {
-        return Self::from_ne_bytes(IS_LE ? bytes : reverse_bytes(bytes));
+#define BYTE_CONVERT_IMPL(e)                                                   \
+    static constexpr Self from_##e##_bytes(                                    \
+        const ByteArray<sizeof(T)> &bytes) {                                   \
+        return Self::from_ne_bytes(is_##e ? bytes : reverse_bytes(bytes));     \
+    }                                                                          \
+    static constexpr Self from_##e(const Self &source) {                       \
+        return Self(is_##e ? source : source.reverse_bytes());                 \
+    }                                                                          \
+    constexpr ByteArray<sizeof(T)> to_##e##_bytes() const & {                  \
+        return is_##e ? this->to_ne_bytes()                                    \
+                      : reverse_bytes(this->to_ne_bytes());                    \
+    }                                                                          \
+    constexpr Self to_##e() const & {                                          \
+        return Self(is_##e ? *this : this->reverse_bytes());                   \
     }
 
-    static constexpr Self from_le(const Self &source) {
-        return Self(IS_LE ? source : source.reverse_bytes());
+    BYTE_CONVERT_IMPL(le)
+    BYTE_CONVERT_IMPL(be)
+
+#undef BYTE_CONVERT_IMPL
+
+    inline Self operator++() & { return Self(++this->value); }
+    inline Self operator--() & { return Self(--this->value); }
+    inline Self operator++(int) & { return Self(this->value++); } // NOLINT
+    inline Self operator--(int) & { return Self(this->value--); } // NOLINT
+
+#define UNARY_OP_IMPL(op)                                                      \
+    inline constexpr Self operator op() const & { return Self(op this->value); }
+
+    UNARY_OP_IMPL(+)
+    UNARY_OP_IMPL(-)
+    UNARY_OP_IMPL(~)
+    UNARY_OP_IMPL(!)
+
+#undef UNARY_OP_IMPL
+
+#define BINARY_OP_IMPL(op)                                                     \
+    inline constexpr Self operator op(const Self &oprand) const & {            \
+        return Self(this->value op oprand.value);                              \
+    }                                                                          \
+    inline Self operator op##=(const Self &oprand) & {                         \
+        return this->value op## = oprand.value;                                \
     }
 
-    constexpr ByteArray<sizeof(T)> to_le_bytes() const {
-        return IS_LE ? this->to_ne_bytes() : reverse_bytes(this->to_ne_bytes());
+    BINARY_OP_IMPL(+)
+    BINARY_OP_IMPL(-)
+    BINARY_OP_IMPL(*)
+    BINARY_OP_IMPL(/)
+    BINARY_OP_IMPL(%)
+    BINARY_OP_IMPL(&)
+    BINARY_OP_IMPL(|)
+    BINARY_OP_IMPL(^)
+    BINARY_OP_IMPL(<<)
+    BINARY_OP_IMPL(>>)
+
+    inline constexpr Self operator&&(const Self &oprand) const & {
+        return Self(this->value && oprand.value);
     }
 
-    constexpr Self to_le() const {
-        return Self(IS_LE ? *this : this->reverse_bytes());
+    inline constexpr Self operator||(const Self &oprand) const & {
+        return Self(this->value || oprand.value);
     }
 
-    static constexpr Self from_be_bytes(const ByteArray<sizeof(T)> &bytes) {
-        return Self::from_ne_bytes(IS_BE ? bytes : reverse_bytes(bytes));
+#undef BINARY_OP_IMPL
+
+#define COMPARISON_OP_IMPL(op)                                                 \
+    friend inline constexpr bool operator op(const Self &l, const Self &r) {   \
+        return l.value op r.value;                                             \
     }
 
-    static constexpr Self from_be(const Self &source) {
-        return Self(IS_BE ? source : source.reverse_bytes());
+    COMPARISON_OP_IMPL(==)
+    COMPARISON_OP_IMPL(!=)
+    COMPARISON_OP_IMPL(<)
+    COMPARISON_OP_IMPL(>)
+    COMPARISON_OP_IMPL(<=)
+    COMPARISON_OP_IMPL(>=)
+
+#undef COMPARISON_OP_IMPL
+
+    friend ::std::ostream &operator<<(::std::ostream &s,
+                                      const Number<T> &number) {
+        return s << +number.value;
     }
 
-    constexpr ByteArray<sizeof(T)> to_be_bytes() const {
-        return IS_BE ? this->to_ne_bytes() : reverse_bytes(this->to_ne_bytes());
+    friend ::std::istream &operator>>(::std::istream &s, Number<T> &number) {
+        return s >> number.value;
     }
-
-    constexpr Self to_be() const {
-        return Self(IS_BE ? *this : this->reverse_bytes());
-    }
-
-    // byte convert end =======================================================
-
-    // arithmetic begin =======================================================
-
-    constexpr Self operator+() const { return Self(*this); }
-    constexpr Self operator-() const { return Self(-this->value); }
-
-    // TODO(other arithmetic operators)
-
-    // arithmetic end =========================================================
 };
-
-// TODO(cast low precision to high precision)
-// TODO(prevent equality check between f32 and f64)
-template <typename T1, typename T2>
-inline constexpr bool operator==(const Number<T1> &l, const Number<T2> &r) {
-    return static_cast<T2>(l.value) == r.value;
-}
-
-template <typename T1, typename T2>
-inline constexpr bool operator!=(const Number<T1> &l, const Number<T2> &r) {
-    return !(l == r);
-}
-
-template <typename T>
-::std::ostream &operator<<(::std::ostream &s, const Number<T> &number) {
-    return s << +number.value;
-}
 
 // TODO(i128/u128)
 
 #define GENERAL_INT_IMPL(ALIAS, ORIGIN)                                        \
     using ALIAS = Number<ORIGIN>;                                              \
     namespace literal {                                                        \
-    constexpr ALIAS operator""_##ALIAS(unsigned long long int val) {           \
+    inline constexpr ALIAS operator""_##ALIAS(unsigned long long int val) {    \
         return static_cast<ALIAS>(val);                                        \
     }                                                                          \
     } // namespace literal
@@ -163,7 +194,7 @@ template <typename T>
                       sizeof(ORIGIN) == (BITS) / 8,                            \
                   "f" #BITS " illegal!");                                      \
     namespace literal {                                                        \
-    constexpr f##BITS operator""_f##BITS(long double val) {                    \
+    inline constexpr f##BITS operator""_f##BITS(long double val) {             \
         return static_cast<f##BITS>(val);                                      \
     }                                                                          \
     } // namespace literal
@@ -186,8 +217,8 @@ FLOATING_IMPL(64, double)
 } // namespace rusty::numeric_types
 
 template <typename T> struct std::hash<::rusty::numeric_types::Number<T>> {
-    ::std::size_t
-    operator()(const ::rusty::numeric_types::Number<T> &number) const noexcept {
+    ::std::size_t operator()(
+        const ::rusty::numeric_types::Number<T> &number) const &noexcept {
         return ::std::hash<T>{}(number.value);
     }
 };

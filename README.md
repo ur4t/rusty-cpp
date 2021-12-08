@@ -9,13 +9,13 @@ Personal handy sugar from rust
 ## Usage
 - Simply include `rusty.hpp`, merged edition recommended.
 - Define `RUSTY_USE_DEFAULT_USING` **before** including to enable all features automatically.
-- Addtional `.clang-tidy` and `.clangd` file for rusty naming convention and other checks.
+- `.clang-tidy` and `.clangd` file for rusty naming convention and other advanced checks.
 
 ## Structure
 All in `namespace rusty` except macros:
 ```
 numeric_types.hpp: namespace numeric_types (
-    numeric types (wrappers of numeric types, with byte manipulation helper),
+    numeric types (wrappers of numeric types, with byte conversion helper),
     namespace literal (user-defined literals of numeric types))
 
 collections.hpp: namespace collections (
@@ -39,6 +39,5 @@ numeric_types_legacy.hpp (deprecated): namespace numeric_types_legacy (
 - Use trailing return type if possible (not always a good idea).
 
 ## TODO
-- comments for hover doc
 - more test cases
-- complete arithmetic operators of numeric types
+- 128 bit integers if possible
