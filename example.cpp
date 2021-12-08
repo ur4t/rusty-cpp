@@ -61,8 +61,10 @@ void test_floating_literals() {
     banner("testing floating literals");
     dbg(0.1_f32, << ::std::fixed << ::std::setprecision(60));
     dbg(0.1_f64, << ::std::fixed << ::std::setprecision(60));
-    dbg((0.0_f32 == 0.0_f64), << ::std::boolalpha);
-    dbg((0.1_f32 == 0.1_f64), << ::std::boolalpha);
+    dbg(f64(0.1_f32), << ::std::fixed << ::std::setprecision(60));
+    dbg(f32(0.1_f64), << ::std::fixed << ::std::setprecision(60));
+    dbg((f64(0.0_f32) == 0.0_f64), << ::std::boolalpha);
+    dbg((f64(0.1_f32) == 0.1_f64), << ::std::boolalpha);
     dbg(f32::from_ne_bytes({0xcd, 0xcc, 0x8c, 0x3f}), << ::std::fixed);
     dbg(f32::from_le_bytes({0xcd, 0xcc, 0x8c, 0x3f}), << ::std::fixed);
     dbg(f32::from_be_bytes({0xcd, 0xcc, 0x8c, 0x3f}), << ::std::fixed);
@@ -103,22 +105,36 @@ void test_collections() {
     dbg((HashMap<i32, string>{{1, "str1"}, {2, "str2"}}));
 }
 
-void test_bit_cast() {
+void test_operators() {
+    using namespace ::rusty::numeric_types;
     using namespace ::rusty::numeric_types::literal;
-    using ::rusty::numeric_types::bit_cast;
-    using ::rusty::numeric_types::f64;
-    using ::rusty::numeric_types::u64;
-    banner("testing bit cast from "
-           "https://en.cppreference.com/w/cpp/numeric/bit_cast");
-    dbg(bit_cast<u64>(19880124.0_f64), << ::std::showbase << ::std::hex);
-    dbg(bit_cast<f64>(0x3fe9000000000000_u64));
+    banner("testing operators");
+    auto u64_5_1 = 5_u64;
+    dbg(++u64_5_1);
+    dbg(u64_5_1);
+    auto u64_5_2 = 5_u64;
+    dbg(u64_5_2++);
+    dbg(u64_5_2);
+    dbg(u64_5_2 <<= 2);
+    dbg(u64_5_2);
+    dbg(1_u64 + 2_u64 * 3_u64 - 4_u64);
+    dbg(100_u64 / 2_u64);
+    dbg(f64(100_u64) / 2.0_f64);
+    dbg(100_u64 % 7_u64);
+    dbg(1.1_f64 * 1.1_f64);
+    dbg(~1_u64, << ::std::showbase << std::hex);
+    dbg(0xaa5555aa_i32 ^ 0x01010101, << ::std::showbase << std::hex);
+    dbg(0xaa5555aa_i32 & 0x01010101, << ::std::showbase << std::hex);
+    dbg(0xaa5555aa_i32 | 0x01010101, << ::std::showbase << std::hex);
+    dbg(0x100_u64 << 2, << ::std::showbase << std::hex);
+    dbg(0x100_u64 >> 2, << ::std::showbase << std::hex);
 }
 
 int main() {
     compiler_info();
-    test_numeric_type_length();
+    // test_numeric_type_length();
     test_integer_literals();
     test_floating_literals();
     test_collections();
-    test_bit_cast();
+    test_operators();
 }
