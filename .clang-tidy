@@ -14,6 +14,26 @@
 # | Constant       | Constant                                       | UPPER_CASE |
 # | Type parameter | TypeTemplateParameter                          | lower_case |
 
+Checks: '
+  abseil-*,
+  boost-*,
+  bugprone-*,
+  cert-*,
+  clang-diagnostic-*,
+  concurrency-*,
+  google-*,
+  llvm-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -google-build-using-namespace,
+  -misc-non-private-member-variables-in-classes,
+  -modernize-use-trailing-return-type,
+  -readability-magic-numbers,
+'
+
 CheckOptions:
   - key: readability-identifier-naming.NamespaceCase
     value: lower_case

@@ -1,0 +1,58 @@
+# https://rust-lang.github.io/api-guidelines/naming.html
+# https://clang.llvm.org/extra/clang-tidy/checks/readability-identifier-naming.html
+#
+# | Rust           | C++                                            | Style      |
+# | Module         | Namespace                                      | lower_case |
+# | Type           | Class, Enum, Struct, TypeAlias, Typedef, Union | CamelCase  |
+# | Trait          | (Not sure, not applied)                        | CamelCase  |
+# | Enum Variant   | EnumConstant                                   | CamelCase  |
+# | Function       | Function                                       | lower_case |
+# | Method         | Method                                         | lower_case |
+# | Macro          | Macro (Not sure, not applied)                  | lower_case |
+# | Local variable | Variable, Parameter                            | lower_case |
+# | Static         | GlobalVariable                                 | UPPER_CASE |
+# | Constant       | Constant                                       | UPPER_CASE |
+# | Type parameter | TypeTemplateParameter                          | lower_case |
+
+Diagnostics:
+  ClangTidy:
+    Add:
+      [
+        abseil-*,
+        boost-*,
+        bugprone-*,
+        cert-*,
+        clang-diagnostic-*,
+        concurrency-*,
+        google-*,
+        llvm-*,
+        misc-*,
+        modernize-*,
+        performance-*,
+        portability-*,
+        readability-*,
+      ]
+    Remove: 
+      [
+        google-build-using-namespace,
+        misc-non-private-member-variables-in-classes,
+        modernize-use-trailing-return-type,
+        readability-magic-numbers,
+      ]
+    CheckOptions:
+      readability-identifier-naming.NamespaceCase : lower_case
+      readability-identifier-naming.ClassCase : CamelCase
+      readability-identifier-naming.EnumCase : CamelCase
+      readability-identifier-naming.StructCase : CamelCase
+      readability-identifier-naming.TypeAliasCase : CamelCase
+      readability-identifier-naming.TypedefCase : CamelCase
+      readability-identifier-naming.UnionCase : CamelCase
+      readability-identifier-naming.EnumConstantCase : CamelCase
+      readability-identifier-naming.FunctionCase : lower_case
+      readability-identifier-naming.MethodCase : lower_case
+      readability-identifier-naming.MemberCase : lower_case
+      readability-identifier-naming.ParameterCase : lower_case
+      readability-identifier-naming.VariableCase : lower_case
+      readability-identifier-naming.GlobalVariableCase : UPPER_CASE
+      readability-identifier-naming.ConstantCase : UPPER_CASE
+      readability-identifier-naming.TypeTemplateParameterCase : CamelCase
