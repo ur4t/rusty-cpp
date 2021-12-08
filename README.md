@@ -8,8 +8,8 @@ Personal handy sugar from rust
 
 ## Usage
 - Simply include `rusty.hpp`, merged edition recommended.
-- Define `RUSTY_NO_USE_DEFAULT` before including if you want to pick up features manually.
-- Addtional `.clang-tidy` for rusty naming convention.
+- Define `RUSTY_USE_DEFAULT_USING` **before** including to enable all features automatically.
+- Addtional `.clang-tidy` and `.clangd` file for rusty naming convention and other checks.
 
 ## Structure
 All in `namespace rusty` except macros:
