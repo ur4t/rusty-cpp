@@ -121,13 +121,13 @@ template <typename T> struct Number {
     constexpr Self operator+() const { return Self(*this); }
     constexpr Self operator-() const { return Self(-this->value); }
 
-    // TODO: other arithmetic operators
+    // TODO(other arithmetic operators)
 
     // arithmetic end =========================================================
 };
 
-// TODO: cast low precision to high precision
-// TODO: prevent equality check between f32 and f64
+// TODO(cast low precision to high precision)
+// TODO(prevent equality check between f32 and f64)
 template <typename T1, typename T2>
 inline constexpr bool operator==(const Number<T1> &l, const Number<T2> &r) {
     return static_cast<T2>(l.value) == r.value;
@@ -143,7 +143,7 @@ template <typename T>
     return s << +number.value;
 }
 
-// TODO: i128/u128
+// TODO(i128/u128)
 
 #define GENERAL_INT_IMPL(ALIAS, ORIGIN)                                        \
     using ALIAS = Number<ORIGIN>;                                              \
