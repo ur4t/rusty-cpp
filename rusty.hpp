@@ -27,32 +27,26 @@ template <typename T1, typename T2>
     return s << "(" << prepare(p.first) << ", " << prepare(p.second) << ")";
 }
 
-#define OSTREAM_IMPL(s, c)                                                     \
-    auto count = (c).size();                                                   \
-    (s) << "[";                                                                \
-    for (const auto &i : (c)) {                                                \
-        (s) << prepare(i);                                                     \
-        if (--count > 0) {                                                     \
-            (s) << ", ";                                                       \
+#define OSTREAM_IMPL(T1, T2)                                                   \
+    template <T1>::std::ostream &operator<<(::std::ostream &s, const T2 &c) {  \
+        auto count = c.size();                                                 \
+        s << "[";                                                              \
+        for (const auto &i : c) {                                              \
+            s << prepare(i);                                                   \
+            if (--count > 0) {                                                 \
+                s << ", ";                                                     \
+            }                                                                  \
         }                                                                      \
-    }                                                                          \
-    return (s) << "]";
+        return s << "]";                                                       \
+    }
 
-template <typename T, ::std::size_t size>
-::std::ostream &operator<<(::std::ostream &s, const Array<T, size> &a) {
-    OSTREAM_IMPL(s, a);
-}
+#define COMMA ,
 
-template <typename T>
-::std::ostream &operator<<(::std::ostream &s, const Vec<T> &v) {
-    OSTREAM_IMPL(s, v);
-}
+OSTREAM_IMPL(typename T COMMA ::std::size_t size, Array<T COMMA size>)
+OSTREAM_IMPL(typename T, Vec<T>)
+OSTREAM_IMPL(typename K COMMA typename V, HashMap<K COMMA V>)
 
-template <typename K, typename V>
-::std::ostream &operator<<(::std::ostream &s, const HashMap<K, V> &m) {
-    OSTREAM_IMPL(s, m);
-}
-
+#undef COMMA
 #undef OSTREAM_IMPL
 
 } // namespace ostream
