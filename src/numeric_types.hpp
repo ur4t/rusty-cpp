@@ -26,18 +26,18 @@ using ::std::is_trivial_v;
 #endif
 
 // bit casting from https://en.cppreference.com/w/cpp/numeric/bit_cast
-template <class To, class From>
+template <class T1, class T2>
 constexpr enable_if_t<
-    sizeof(To) == sizeof(From) && is_trivial_v<From> && is_trivial_v<To>, To>
-bit_cast(const From &source) noexcept {
-    To destination;
-    ::std::memcpy(&destination, &source, sizeof(To));
-    return destination;
+    sizeof(T1) == sizeof(T2) && is_trivial_v<T2> && is_trivial_v<T1>, T1>
+bit_cast(const T2 &from) noexcept {
+    T1 to;
+    ::std::memcpy(&to, &from, sizeof(T1));
+    return to;
 }
 
 template <typename T> struct Number {
     template <::std::size_t N>
-    using ByteArray = ::std::array<Number<::std::uint8_t>, N>;
+    using Bytes = ::std::array<Number<::std::uint8_t>, N>;
     using Self = Number<T>;
     T value;
 
@@ -65,40 +65,39 @@ template <typename T> struct Number {
 #endif
     static_assert(is_le || is_be, "Neither little-endian or big-endian!");
 
-    static constexpr Self from_ne_bytes(const ByteArray<sizeof(T)> &bytes) {
-        return Self{bit_cast<T>(bytes)};
+    static constexpr Self from_ne_bytes(const Bytes<sizeof(T)> &bytes) {
+        return bit_cast<Self>(bytes);
     }
 
-    constexpr ByteArray<sizeof(T)> to_ne_bytes() const & {
-        return bit_cast<ByteArray<sizeof(T)>>(value);
+    constexpr Bytes<sizeof(T)> to_ne_bytes() const & {
+        return bit_cast<Bytes<sizeof(T)>>(value);
     }
 
     // Based on https://en.cppreference.com/w/cpp/container/array/rbegin
     template <::std::size_t N>
-    static constexpr ByteArray<N> reverse_bytes(ByteArray<N> bytes) {
-        ByteArray<N> reversed_bytes;
+    static constexpr Bytes<N> reverse_bytes(Bytes<N> bytes) noexcept {
+        Bytes<N> reversed_bytes;
         ::std::copy(bytes.crbegin(), bytes.crend(), reversed_bytes.begin());
         return reversed_bytes;
     }
 
     constexpr Self reverse_bytes() const & {
-        return Self::from_ne_bytes(reverse_bytes(this->to_ne_bytes()));
+        return from_ne_bytes(reverse_bytes(this->to_ne_bytes()));
     }
 
 #define BYTE_CONVERT_IMPL(e)                                                   \
-    static constexpr Self from_##e##_bytes(                                    \
-        const ByteArray<sizeof(T)> &bytes) {                                   \
-        return Self::from_ne_bytes(is_##e ? bytes : reverse_bytes(bytes));     \
+    static constexpr Self from_##e##_bytes(const Bytes<sizeof(T)> &bytes) {    \
+        return from_ne_bytes(is_##e ? bytes : reverse_bytes(bytes));           \
     }                                                                          \
     static constexpr Self from_##e(const Self &source) {                       \
-        return Self(is_##e ? source : source.reverse_bytes());                 \
+        return is_##e ? source : source.reverse_bytes();                       \
     }                                                                          \
-    constexpr ByteArray<sizeof(T)> to_##e##_bytes() const & {                  \
+    constexpr Bytes<sizeof(T)> to_##e##_bytes() const & {                      \
         return is_##e ? this->to_ne_bytes()                                    \
                       : reverse_bytes(this->to_ne_bytes());                    \
     }                                                                          \
     constexpr Self to_##e() const & {                                          \
-        return Self(is_##e ? *this : this->reverse_bytes());                   \
+        return is_##e ? *this : this->reverse_bytes();                         \
     }
 
     BYTE_CONVERT_IMPL(le)
@@ -106,13 +105,18 @@ template <typename T> struct Number {
 
 #undef BYTE_CONVERT_IMPL
 
-    inline Self operator++() & { return Self(++this->value); }
-    inline Self operator--() & { return Self(--this->value); }
-    inline Self operator++(int) & { return Self(this->value++); } // NOLINT
-    inline Self operator--(int) & { return Self(this->value--); } // NOLINT
+#define INC_DEC_IMPL(op, pos, pre, post)                                       \
+    inline Self operator op(pos) & { return Self{pre this->value post}; }
+
+    INC_DEC_IMPL(++, , ++, )
+    INC_DEC_IMPL(--, , --, )
+    INC_DEC_IMPL(++, int, , ++) // NOLINT(cert-dcl21-cpp)
+    INC_DEC_IMPL(--, int, , ++) // NOLINT(cert-dcl21-cpp)
+
+#undef INC_DEC_IMPL
 
 #define UNARY_OP_IMPL(op)                                                      \
-    inline constexpr Self operator op() const & { return Self(op this->value); }
+    inline constexpr Self operator op() const & { return Self{op this->value}; }
 
     UNARY_OP_IMPL(+)
     UNARY_OP_IMPL(-)
@@ -121,12 +125,15 @@ template <typename T> struct Number {
 
 #undef UNARY_OP_IMPL
 
-#define BINARY_OP_IMPL(op)                                                     \
+#define NORMAL_IMPL(op)                                                        \
     inline constexpr Self operator op(const Self &oprand) const & {            \
-        return Self(this->value op oprand.value);                              \
-    }                                                                          \
+        return Self{this->value op oprand.value};                              \
+    }
+
+#define BINARY_OP_IMPL(op)                                                     \
+    NORMAL_IMPL(op)                                                            \
     inline Self operator op##=(const Self &oprand) & {                         \
-        return this->value op## = oprand.value;                                \
+        return Self{this->value op## = oprand.value};                          \
     }
 
     BINARY_OP_IMPL(+)
@@ -139,15 +146,10 @@ template <typename T> struct Number {
     BINARY_OP_IMPL(^)
     BINARY_OP_IMPL(<<)
     BINARY_OP_IMPL(>>)
+    NORMAL_IMPL(&&)
+    NORMAL_IMPL(||)
 
-    inline constexpr Self operator&&(const Self &oprand) const & {
-        return Self(this->value && oprand.value);
-    }
-
-    inline constexpr Self operator||(const Self &oprand) const & {
-        return Self(this->value || oprand.value);
-    }
-
+#undef NORMAL_IMPL
 #undef BINARY_OP_IMPL
 
 #define COMPARISON_OP_IMPL(op)                                                 \
@@ -164,8 +166,7 @@ template <typename T> struct Number {
 
 #undef COMPARISON_OP_IMPL
 
-    friend ::std::ostream &operator<<(::std::ostream &s,
-                                      const Number<T> &number) {
+    friend ::std::ostream &operator<<(::std::ostream &s, const Self &number) {
         return s << +number.value;
     }
 
@@ -217,7 +218,7 @@ FLOATING_IMPL(64, double)
 } // namespace rusty::numeric_types
 
 template <typename T> struct std::hash<::rusty::numeric_types::Number<T>> {
-    ::std::size_t operator()(
+    ::std::size_t constexpr operator()(
         const ::rusty::numeric_types::Number<T> &number) const &noexcept {
         return ::std::hash<T>{}(number.value);
     }
