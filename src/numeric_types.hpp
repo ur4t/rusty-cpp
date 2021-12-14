@@ -41,16 +41,12 @@ template <typename T> struct Number {
     using Self = Number<T>;
     T value;
 
-    // Implicit conversion from raw numeric literals
-    // is not recommended, though allowed for convenience.
     // NOLINTNEXTLINE(google-explicit-constructor)
-    constexpr Number<T>(const T &value) : value(value){};
-    constexpr Number<T>() = default;
-    constexpr Number<T>(const Self &) = default;
-    // Disable implicit conversion between Number<> for safety.
-    template <typename T2>
-    constexpr explicit Number<T>(const Number<T2> &number)
-        : value(static_cast<T>(number.value)){};
+    inline constexpr operator T() const & { return this->value; }
+    // NOLINTNEXTLINE(google-explicit-constructor)
+    inline constexpr Number<T>(const T &value) : value(value){};
+    inline constexpr Number<T>() = default;
+    inline constexpr Number<T>(const Self &) = default;
 
     // compile time endian detection from
     // https://en.cppreference.com/w/cpp/types/endian
@@ -82,7 +78,7 @@ template <typename T> struct Number {
     }
 
     constexpr Self reverse_bytes() const & {
-        return from_ne_bytes(reverse_bytes(this->to_ne_bytes()));
+        return from_ne_bytes(reverse_bytes(to_ne_bytes()));
     }
 
 #define BYTE_CONVERT_IMPL(e)                                                   \
@@ -93,11 +89,10 @@ template <typename T> struct Number {
         return is_##e ? source : source.reverse_bytes();                       \
     }                                                                          \
     constexpr Bytes<sizeof(T)> to_##e##_bytes() const & {                      \
-        return is_##e ? this->to_ne_bytes()                                    \
-                      : reverse_bytes(this->to_ne_bytes());                    \
+        return is_##e ? to_ne_bytes() : reverse_bytes(to_ne_bytes());          \
     }                                                                          \
     constexpr Self to_##e() const & {                                          \
-        return is_##e ? *this : this->reverse_bytes();                         \
+        return is_##e ? Self{value} : reverse_bytes();                         \
     }
 
     BYTE_CONVERT_IMPL(le)
@@ -106,7 +101,7 @@ template <typename T> struct Number {
 #undef BYTE_CONVERT_IMPL
 
 #define INC_DEC_IMPL(op, pos, pre, post)                                       \
-    inline Self operator op(pos) & { return Self{pre this->value post}; }
+    inline Self operator op(pos) & { return Self{pre value post}; }
 
     INC_DEC_IMPL(++, , ++, )
     INC_DEC_IMPL(--, , --, )
@@ -115,62 +110,29 @@ template <typename T> struct Number {
 
 #undef INC_DEC_IMPL
 
-#define UNARY_OP_IMPL(op)                                                      \
-    inline constexpr Self operator op() const & { return Self{op this->value}; }
-
-    UNARY_OP_IMPL(+)
-    UNARY_OP_IMPL(-)
-    UNARY_OP_IMPL(~)
-    UNARY_OP_IMPL(!)
-
-#undef UNARY_OP_IMPL
-
-#define NORMAL_IMPL(op)                                                        \
-    inline constexpr Self operator op(const Self &oprand) const & {            \
-        return Self{this->value op oprand.value};                              \
-    }
-
-#define BINARY_OP_IMPL(op)                                                     \
-    NORMAL_IMPL(op)                                                            \
+#define BINARY_ASSIGN_IMPL(op)                                                 \
     inline Self operator op##=(const Self &oprand) & {                         \
-        return Self{this->value op## = oprand.value};                          \
+        return Self{value op## = oprand.value};                                \
     }
 
-    BINARY_OP_IMPL(+)
-    BINARY_OP_IMPL(-)
-    BINARY_OP_IMPL(*)
-    BINARY_OP_IMPL(/)
-    BINARY_OP_IMPL(%)
-    BINARY_OP_IMPL(&)
-    BINARY_OP_IMPL(|)
-    BINARY_OP_IMPL(^)
-    BINARY_OP_IMPL(<<)
-    BINARY_OP_IMPL(>>)
-    NORMAL_IMPL(&&)
-    NORMAL_IMPL(||)
+    BINARY_ASSIGN_IMPL(+)
+    BINARY_ASSIGN_IMPL(-)
+    BINARY_ASSIGN_IMPL(*)
+    BINARY_ASSIGN_IMPL(/)
+    BINARY_ASSIGN_IMPL(%)
+    BINARY_ASSIGN_IMPL(&)
+    BINARY_ASSIGN_IMPL(|)
+    BINARY_ASSIGN_IMPL(^)
+    BINARY_ASSIGN_IMPL(<<)
+    BINARY_ASSIGN_IMPL(>>)
 
-#undef NORMAL_IMPL
-#undef BINARY_OP_IMPL
-
-#define COMPARISON_OP_IMPL(op)                                                 \
-    friend inline constexpr bool operator op(const Self &l, const Self &r) {   \
-        return l.value op r.value;                                             \
-    }
-
-    COMPARISON_OP_IMPL(==)
-    COMPARISON_OP_IMPL(!=)
-    COMPARISON_OP_IMPL(<)
-    COMPARISON_OP_IMPL(>)
-    COMPARISON_OP_IMPL(<=)
-    COMPARISON_OP_IMPL(>=)
-
-#undef COMPARISON_OP_IMPL
+#undef BINARY_ASSIGN_IMPL
 
     friend ::std::ostream &operator<<(::std::ostream &s, const Self &number) {
         return s << +number.value;
     }
 
-    friend ::std::istream &operator>>(::std::istream &s, Number<T> &number) {
+    friend ::std::istream &operator>>(::std::istream &s, Self &number) {
         return s >> number.value;
     }
 };
