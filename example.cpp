@@ -65,31 +65,28 @@ void test_floating_literals() {
     dbg(f32(0.1_f64), << ::std::fixed << ::std::setprecision(60));
     dbg((f64(0.0_f32) == 0.0_f64), << ::std::boolalpha);
     dbg((f64(0.1_f32) == 0.1_f64), << ::std::boolalpha);
-    dbg(f32::from_ne_bytes({0xcd, 0xcc, 0x8c, 0x3f}), << ::std::fixed);
-    dbg(f32::from_le_bytes({0xcd, 0xcc, 0x8c, 0x3f}), << ::std::fixed);
-    dbg(f32::from_be_bytes({0xcd, 0xcc, 0x8c, 0x3f}), << ::std::fixed);
-    dbg(f32::from_le(1.1_f32), << ::std::fixed);
-    dbg(f32::from_be(1.1_f32), << ::std::fixed);
+    dbg(f32::from_ne_bytes({0xcd, 0xcc, 0x8c, 0x3f}));
+    dbg(f32::from_le_bytes({0xcd, 0xcc, 0x8c, 0x3f}));
+    dbg(f32::from_be_bytes({0xcd, 0xcc, 0x8c, 0x3f}));
+    dbg(f32::from_le(1.1_f32));
+    dbg(f32::from_be(1.1_f32));
     dbg((1.1_f32).to_ne_bytes(), << ::std::showbase << ::std::hex);
     dbg((1.1_f32).to_le_bytes(), << ::std::showbase << ::std::hex);
     dbg((1.1_f32).to_be_bytes(), << ::std::showbase << ::std::hex);
-    dbg((1.1_f32).to_le(), << ::std::fixed);
-    dbg((1.1_f32).to_be(), << ::std::fixed);
-    dbg((1.1_f32).reverse_bytes(), << ::std::fixed);
-    dbg(f64::from_ne_bytes({0x9a, 0x99, 0x99, 0x99, 0x99, 0x99, 0xf1, 0x3f}),
-        << ::std::fixed);
-    dbg(f64::from_le_bytes({0x9a, 0x99, 0x99, 0x99, 0x99, 0x99, 0xf1, 0x3f}),
-        << ::std::fixed);
-    dbg(f64::from_be_bytes({0x9a, 0x99, 0x99, 0x99, 0x99, 0x99, 0xf1, 0x3f}),
-        << ::std::fixed);
-    dbg(f64::from_le(1.1_f64), << ::std::fixed);
-    dbg(f64::from_be(1.1_f64), << ::std::fixed);
+    dbg((1.1_f32).to_le());
+    dbg((1.1_f32).to_be());
+    dbg((1.1_f32).reverse_bytes());
+    dbg(f64::from_ne_bytes({0x9a, 0x99, 0x99, 0x99, 0x99, 0x99, 0xf1, 0x3f}));
+    dbg(f64::from_le_bytes({0x9a, 0x99, 0x99, 0x99, 0x99, 0x99, 0xf1, 0x3f}));
+    dbg(f64::from_be_bytes({0x9a, 0x99, 0x99, 0x99, 0x99, 0x99, 0xf1, 0x3f}));
+    dbg(f64::from_le(1.1_f64));
+    dbg(f64::from_be(1.1_f64));
     dbg((1.1_f64).to_ne_bytes(), << ::std::showbase << ::std::hex);
     dbg((1.1_f64).to_le_bytes(), << ::std::showbase << ::std::hex);
     dbg((1.1_f64).to_be_bytes(), << ::std::showbase << ::std::hex);
-    dbg((1.1_f64).to_le(), << ::std::fixed);
-    dbg((1.1_f64).to_be(), << ::std::fixed);
-    dbg((1.1_f64).reverse_bytes(), << ::std::fixed);
+    dbg((1.1_f64).to_le());
+    dbg((1.1_f64).to_be());
+    dbg((1.1_f64).reverse_bytes());
 }
 
 void test_collections() {
@@ -109,25 +106,49 @@ void test_operators() {
     using namespace ::rusty::numeric_types;
     using namespace ::rusty::numeric_types::literal;
     banner("testing operators");
-    auto u64_5_1 = 5_u64;
-    dbg(++u64_5_1);
-    dbg(u64_5_1);
-    auto u64_5_2 = 5_u64;
-    dbg(u64_5_2++);
-    dbg(u64_5_2);
-    dbg(u64_5_2 <<= 2);
-    dbg(u64_5_2);
-    dbg(1_u64 + 2_u64 * 3_u64 - 4_u64);
-    dbg(100_u64 / 2_u64);
-    dbg(f64(100_u64) / 2.0_f64);
-    dbg(100_u64 % 7_u64);
-    dbg(1.1_f64 * 1.1_f64);
+    dbg(+1_u64, << ::std::showbase << std::hex);
+    dbg(-1_u64, << ::std::showbase << std::hex);
     dbg(~1_u64, << ::std::showbase << std::hex);
+    dbg(!1_u64, << ::std::showbase << std::hex);
+    dbg(+0_u64, << ::std::showbase << std::hex);
+    dbg(-0_u64, << ::std::showbase << std::hex);
+    dbg(~0_u64, << ::std::showbase << std::hex);
+    dbg(!0_u64, << ::std::showbase << std::hex);
+    auto u64_5 = 5_u64;
+    dbg(u64_5);
+    dbg(++u64_5);
+    dbg(u64_5);
+    dbg(u64_5++);
+    dbg(u64_5);
+    dbg(u64_5 += 3);
+    dbg(u64_5 -= 3);
+    dbg(u64_5 *= 3);
+    dbg(u64_5 /= 3);
+    dbg(u64_5 %= 3);
+    dbg(u64_5 ^= 3);
+    dbg(u64_5 &= 3);
+    dbg(u64_5 |= 3);
+    dbg(u64_5 <<= 3);
+    dbg(u64_5 >>= 3);
+    dbg(1_u64 + 2_u64 * 3_u64 - 4_u64 / 2_u64);
+    dbg(100_u64 / 7_u64);
+    dbg(100_u64 % 7_u64);
+    dbg(f64(100_u64) / 7.0_f64);
+    dbg(0.7_f64 * 142.857_f64);
+    dbg(0.7_f64 * 142.8571_f64);
     dbg(0xaa5555aa_i32 ^ 0x01010101, << ::std::showbase << std::hex);
     dbg(0xaa5555aa_i32 & 0x01010101, << ::std::showbase << std::hex);
     dbg(0xaa5555aa_i32 | 0x01010101, << ::std::showbase << std::hex);
-    dbg(0x100_u64 << 2, << ::std::showbase << std::hex);
-    dbg(0x100_u64 >> 2, << ::std::showbase << std::hex);
+    dbg(0x123_u64 << 2, << ::std::showbase << std::hex);
+    dbg(0x123_u64 >> 2, << ::std::showbase << std::hex);
+    dbg(0x123_u64 && 0, << ::std::showbase << std::hex);
+    dbg(0x123_u64 || 0, << ::std::showbase << std::hex);
+    dbg(-0x80000000_i32 == +0x80000000_i32, << ::std::boolalpha);
+    dbg(-0x80000000_i32 != +0x80000000_i32, << ::std::boolalpha);
+    dbg(f64(0.1_f32) > 0.1_f64, << ::std::boolalpha);
+    dbg(f64(0.1_f32) >= 0.1_f64, << ::std::boolalpha);
+    dbg(f64(0.1_f32) < 0.1_f64, << ::std::boolalpha);
+    dbg(f64(0.1_f32) <= 0.1_f64, << ::std::boolalpha);
 }
 
 int main() {
